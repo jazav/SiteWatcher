@@ -1,6 +1,7 @@
 import file_utils
 import shutil
 import os
+import http_utils
 
 
 class SiteWatcher():
@@ -9,6 +10,22 @@ class SiteWatcher():
     old_html_dir = "old_htmls"
     diff_dir = "diffs"
     old_diff_dir = "old_diffs"
+
+
+    def prepare_dirs(self):
+        if os.path.exists(self.old_html_dir):
+            shutil.rmtree(self.old_html_dir)
+        if os.path.exists(self.old_diff_dir):
+            shutil.rmtree(self.old_diff_dir)
+        if os.path.exists(self.html_dir):
+            os.renames(self.html_dir, self.old_html_dir)
+
+    def get_all_urls(self):
+        return file_utils.get_files_names(self.url_dir)
+
+    def download_htmls(self, url_dict):
+        for url in url_dict.values():
+            http_utils.get_html(url)
 
     def start(self, url_dict=None):
         """
@@ -24,13 +41,10 @@ class SiteWatcher():
         """
         #1.
         if url_dict is None:
-            url_dict = file_utils.get_files_names(self.url_dir)
-            print(url_dict)
+            url_dict = self.get_all_urls()
 
-        if os.path.exists(self.old_html_dir):
-            shutil.rmtree(self.old_html_dir)
-        if os.path.exists(self.old_diff_dir):
-            shutil.rmtree(self.old_diff_dir)
-        os.renames(self.html_dir, self.old_html_dir)
+        #2,3 and 4
 
+        self.prepare_dirs()
 
+        self.download_htmls(url_dict=url_dict)
